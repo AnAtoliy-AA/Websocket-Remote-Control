@@ -1,14 +1,14 @@
-import { mouse } from "@nut-tree/nut-js";
+import { Button, mouse } from "@nut-tree/nut-js";
 import {
   IMAGE_WIDTH,
   IMAGE_HEIGHT,
-  CIRCLE_STEP,
   DEFAULT_MOUSE_DELAY,
   SMALL_MOUSE_DELAY,
 } from "../constants/common";
 import { RemoteControls } from "../constants/remoteControls";
 import screenCaptureToFile from "../utils/screenCaptureToFile";
 import { ICustomWebSocket } from "../types/customWebSocket";
+import DrawFigureService from '../services/DrawFigureService';
 
 export default async function controlsSwitcher(
   message: Buffer,
@@ -50,20 +50,16 @@ export default async function controlsSwitcher(
       wsClient.send(`${RemoteControls.MOUSE_POSITION} ${x}px,${y}px`);
 
       break;
-    // case RemoteControls.DRAW_CIRCLE:
-    //   wsClient.send(`${RemoteControls.DRAW_CIRCLE} ${firstMessageParam}`);
-    //   robot.mouseToggle(RemoteControls.MOUSE_BUTTON_DOWN);
+    case RemoteControls.DRAW_CIRCLE:
+      wsClient.send(`${RemoteControls.DRAW_CIRCLE} ${firstMessageParam}`);
+      
+      const points = DrawFigureService.getCirclePoints(x,y,firstMessageParam);
 
-    //   for (let i = 0; i <= Math.PI * 2; i += CIRCLE_STEP) {
-    //     const radius = Number(firstMessageParam);
-    //     const a = x + radius * Math.cos(i);
-    //     const b = y + radius * Math.sin(i);
-
-    //     robot.dragMouse(a, b);
-    //   }
-    //   robot.mouseToggle(RemoteControls.MOUSE_UP);
-
-    //   break;
+      mouse.pressButton(Button.LEFT)
+      mouse.move(points)
+      mouse.releaseButton(Button.LEFT)
+ 
+      break;
     // case RemoteControls.DRAW_RECTANGLE:
     //   wsClient.send(
     //     `${RemoteControls.DRAW_RECTANGLE} ${firstMessageParam} ${secondMessageParam}`
