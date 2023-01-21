@@ -1,4 +1,4 @@
-import { Button, mouse } from "@nut-tree/nut-js";
+import { Button, down, left, mouse, right, up } from "@nut-tree/nut-js";
 import {
   IMAGE_WIDTH,
   IMAGE_HEIGHT,
@@ -9,6 +9,7 @@ import { RemoteControls } from "../constants/remoteControls";
 import screenCaptureToFile from "../utils/screenCaptureToFile";
 import { ICustomWebSocket } from "../types/customWebSocket";
 import DrawFigureService from '../services/DrawFigureService';
+import { calculateMovementTimesteps } from '@nut-tree/nut-js/dist/lib/mouse-movement.function';
 
 export default async function controlsSwitcher(
   message: Buffer,
@@ -53,37 +54,25 @@ export default async function controlsSwitcher(
     case RemoteControls.DRAW_CIRCLE:
       wsClient.send(`${RemoteControls.DRAW_CIRCLE} ${firstMessageParam}`);
       
-      const points = DrawFigureService.getCirclePoints(x,y,firstMessageParam);
+      const circlePoints = DrawFigureService.getCirclePoints(x,y,firstMessageParam);
 
-      mouse.pressButton(Button.LEFT)
-      mouse.move(points)
-      mouse.releaseButton(Button.LEFT)
+      await mouse.drag(circlePoints)
  
       break;
-    // case RemoteControls.DRAW_RECTANGLE:
-    //   wsClient.send(
-    //     `${RemoteControls.DRAW_RECTANGLE} ${firstMessageParam} ${secondMessageParam}`
-    //   );
+    case RemoteControls.DRAW_RECTANGLE:
+      wsClient.send(
+        `${RemoteControls.DRAW_RECTANGLE} ${firstMessageParam} ${secondMessageParam}`
+      );
+      await mouse.pressButton(Button.LEFT)
 
-    //   robot.setMouseDelay(SMALL_MOUSE_DELAY);
-    //   robot.mouseToggle(RemoteControls.MOUSE_BUTTON_DOWN);
+      await mouse.move(right(+firstMessageParam));
+      await mouse.move(down(+secondMessageParam))
+      await mouse.move(left(+firstMessageParam));
+      await mouse.move(up(+secondMessageParam));
 
-    //   let rectangleWidth = x + +firstMessageParam;
-    //   robot.moveMouseSmooth(rectangleWidth, y);
+      await mouse.releaseButton(Button.LEFT)
 
-    //   let rectangleLength = y + +secondMessageParam;
-    //   robot.moveMouseSmooth(rectangleWidth, rectangleLength);
-
-    //   rectangleWidth = rectangleWidth - +firstMessageParam;
-    //   robot.moveMouseSmooth(rectangleWidth, rectangleLength);
-
-    //   rectangleLength = rectangleLength - +secondMessageParam;
-    //   robot.moveMouseSmooth(rectangleWidth, rectangleLength);
-
-    //   robot.mouseToggle(RemoteControls.MOUSE_BUTTON_UP);
-    //   robot.setMouseDelay(DEFAULT_MOUSE_DELAY);
-
-    //   break;
+      break;
     // case RemoteControls.DRAW_SQUARE:
     //   wsClient.send(`${RemoteControls.DRAW_SQUARE} ${firstMessageParam}`);
 
