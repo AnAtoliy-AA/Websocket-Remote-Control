@@ -4,6 +4,7 @@ import {
   IMAGE_HEIGHT,
   DEFAULT_MOUSE_DELAY,
   SMALL_MOUSE_DELAY,
+  MouseSpeed,
 } from "../constants/common";
 import { RemoteControls } from "../constants/remoteControls";
 import screenCaptureToFile from "../utils/screenCaptureToFile";
@@ -53,11 +54,21 @@ export default async function controlsSwitcher(
       break;
     case RemoteControls.DRAW_CIRCLE:
       wsClient.send(`${RemoteControls.DRAW_CIRCLE} ${firstMessageParam}`);
-      
-      const circlePoints = DrawFigureService.getCirclePoints(x,y,firstMessageParam);
 
-      await mouse.drag(circlePoints)
- 
+      const circlePoints = DrawFigureService.getCirclePoints(x, y, firstMessageParam);
+
+      await mouse.setPosition(circlePoints?.[0]);
+      await mouse.pressButton(Button.LEFT)
+
+      mouse.config.mouseSpeed = MouseSpeed.SLOW;
+
+      await mouse.move(circlePoints)
+
+      mouse.config.mouseSpeed = MouseSpeed.DEFAULT;
+
+      await mouse.releaseButton(Button.LEFT)
+      await mouse.setPosition({ x, y });
+
       break;
     case RemoteControls.DRAW_RECTANGLE:
       wsClient.send(
@@ -65,50 +76,49 @@ export default async function controlsSwitcher(
       );
       await mouse.pressButton(Button.LEFT)
 
+      mouse.config.mouseSpeed = MouseSpeed.SLOW;
+
       await mouse.move(right(+firstMessageParam));
       await mouse.move(down(+secondMessageParam))
       await mouse.move(left(+firstMessageParam));
       await mouse.move(up(+secondMessageParam));
 
+      mouse.config.mouseSpeed = MouseSpeed.DEFAULT;
+
       await mouse.releaseButton(Button.LEFT)
 
       break;
-    // case RemoteControls.DRAW_SQUARE:
-    //   wsClient.send(`${RemoteControls.DRAW_SQUARE} ${firstMessageParam}`);
+    case RemoteControls.DRAW_SQUARE:
+      wsClient.send(`${RemoteControls.DRAW_SQUARE} ${firstMessageParam}`);
 
-    //   robot.setMouseDelay(SMALL_MOUSE_DELAY);
-    //   robot.mouseToggle(RemoteControls.MOUSE_BUTTON_DOWN);
+      await mouse.pressButton(Button.LEFT)
 
-    //   let squareWidth = x + +firstMessageParam;
-    //   robot.dragMouse(squareWidth, y);
+      mouse.config.mouseSpeed = MouseSpeed.SLOW;
 
-    //   let squareLength = y + +firstMessageParam;
-    //   robot.dragMouse(squareWidth, squareLength);
+      await mouse.move(right(+firstMessageParam));
+      await mouse.move(down(+firstMessageParam))
+      await mouse.move(left(+firstMessageParam));
+      await mouse.move(up(+firstMessageParam));
 
-    //   squareWidth = squareWidth - +firstMessageParam;
-    //   robot.dragMouse(squareWidth, squareLength);
+      mouse.config.mouseSpeed = MouseSpeed.DEFAULT;
 
-    //   squareLength = squareLength - +firstMessageParam;
-    //   robot.dragMouse(squareWidth, squareLength);
+      await mouse.releaseButton(Button.LEFT)
 
-    //   robot.setMouseDelay(DEFAULT_MOUSE_DELAY);
-    //   robot.mouseToggle(RemoteControls.MOUSE_BUTTON_UP);
-
-    //   break;
+      break;
     // case RemoteControls.PRINT_SCREEN:
-      // const img = robot.screen.capture(
-      //   x - IMAGE_WIDTH / 2,
-      //   y - IMAGE_HEIGHT / 2,
-      //   IMAGE_WIDTH,
-      //   IMAGE_HEIGHT
-      // );
+    // const img = robot.screen.capture(
+    //   x - IMAGE_WIDTH / 2,
+    //   y - IMAGE_HEIGHT / 2,
+    //   IMAGE_WIDTH,
+    //   IMAGE_HEIGHT
+    // );
 
-      // const capturedScreen: string = await screenCaptureToFile(img);
-      // const croppedBase64ImageText = capturedScreen.split(",")[1];
+    // const capturedScreen: string = await screenCaptureToFile(img);
+    // const croppedBase64ImageText = capturedScreen.split(",")[1];
 
-      // wsClient.send(`${RemoteControls.PRINT_SCREEN} ${croppedBase64ImageText}`);
+    // wsClient.send(`${RemoteControls.PRINT_SCREEN} ${croppedBase64ImageText}`);
 
-      // break;
+    // break;
     default:
       console.log(RemoteControls.UNKNOWN_COMMAND);
 

@@ -7,3 +7,11 @@ export const DEFAULT_MOUSE_DELAY = 10;
 
 export const IMAGE_WIDTH = 200;
 export const IMAGE_HEIGHT = 200;
+
+export enum MouseSpeed {
+    MIN = 50,
+    SLOW = 80,
+    DEFAULT = 100,
+    FAST = 120,
+    MAX = 150,
+}
