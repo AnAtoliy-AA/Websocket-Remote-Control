@@ -1,5 +1,5 @@
-export const HTTP_PORT = 3500;
-export const WS_PORT = 9900;
+export const HTTP_PORT = 8181;
+export const WS_PORT = 8080;
 
 export const SMALL_MOUSE_DELAY = 1000;
 export const DEFAULT_MOUSE_DELAY = 10;
