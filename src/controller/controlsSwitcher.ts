@@ -3,13 +3,10 @@ import {
   IMAGE_WIDTH,
   IMAGE_HEIGHT,
   MouseSpeed,
-  DEFAULT_IMAGE_NAME,
-  DEFAULT_IMAGE_PATH,
 } from "../constants/common";
 import { RemoteControls } from "../constants/remoteControls";
 import DrawFigureService from '../services/DrawFigureService';
 import { imageToBase64 } from '../utils/base64image';
-import path from 'path';
 import internal from 'stream';
 
 export default async function controlsSwitcher(
@@ -112,9 +109,10 @@ export default async function controlsSwitcher(
       const _height = IMAGE_HEIGHT;
       const region = new Region(_left, _top, _width, _height);
 
-      await screen.captureRegion(DEFAULT_IMAGE_NAME, region, FileType.PNG, DEFAULT_IMAGE_PATH);
+      const tempImage = await screen.grabRegion(region);
 
-      const capturedScreen = await imageToBase64(path.resolve(DEFAULT_IMAGE_PATH, DEFAULT_IMAGE_NAME + FileType.PNG));
+      const capturedScreen = await imageToBase64(tempImage);
+
       const croppedBase64ImageText = capturedScreen?.split(",")[1];
 
       duplexStream.write(`${RemoteControls.PRINT_SCREEN} ${croppedBase64ImageText}`);
