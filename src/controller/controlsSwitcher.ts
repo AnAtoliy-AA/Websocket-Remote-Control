@@ -7,16 +7,16 @@ import {
   DEFAULT_IMAGE_PATH,
 } from "../constants/common";
 import { RemoteControls } from "../constants/remoteControls";
-import { ICustomWebSocket } from "../types/customWebSocket";
 import DrawFigureService from '../services/DrawFigureService';
 import { imageToBase64 } from '../utils/base64image';
 import path from 'path';
+import internal from 'stream';
 
 export default async function controlsSwitcher(
-  message: Buffer,
-  wsClient: ICustomWebSocket
+  message: string,
+  duplexStream: internal.Duplex
 ) {
-  const jsonMessageArray = message.toString("utf-8").split(" ");
+  const jsonMessageArray = message.split(" ");
   const jsonMessageCommand = jsonMessageArray[0];
   const firstMessageParam = jsonMessageArray[1];
   const secondMessageParam = jsonMessageArray[2];
@@ -27,33 +27,33 @@ export default async function controlsSwitcher(
     case RemoteControls.MOUSE_DOWN:
       y += +firstMessageParam;
       mouse.setPosition({ x, y });
-      wsClient.send(`${RemoteControls.MOUSE_DOWN} ${firstMessageParam}`);
+      duplexStream.write(`${RemoteControls.MOUSE_DOWN} ${firstMessageParam}`);
 
       break;
     case RemoteControls.MOUSE_UP:
       y -= +firstMessageParam;
       mouse.setPosition({ x, y });
-      wsClient.send(`${RemoteControls.MOUSE_UP} ${firstMessageParam}`);
+      duplexStream.write(`${RemoteControls.MOUSE_UP} ${firstMessageParam}`);
 
       break;
     case RemoteControls.MOUSE_LEFT:
       x -= +firstMessageParam;
       mouse.setPosition({ x, y });
-      wsClient.send(`${RemoteControls.MOUSE_LEFT} ${firstMessageParam}`);
+      duplexStream.write(`${RemoteControls.MOUSE_LEFT} ${firstMessageParam}`);
 
       break;
     case RemoteControls.MOUSE_RIGHT:
       x += +firstMessageParam;
       mouse.setPosition({ x, y });
-      wsClient.send(`${RemoteControls.MOUSE_RIGHT} ${firstMessageParam}`);
+      duplexStream.write(`${RemoteControls.MOUSE_RIGHT} ${firstMessageParam}`);
 
       break;
     case RemoteControls.MOUSE_POSITION:
-      wsClient.send(`${RemoteControls.MOUSE_POSITION} ${x}px,${y}px`);
+      duplexStream.write(`${RemoteControls.MOUSE_POSITION} ${x}px,${y}px`);
 
       break;
     case RemoteControls.DRAW_CIRCLE:
-      wsClient.send(`${RemoteControls.DRAW_CIRCLE} ${firstMessageParam}`);
+      duplexStream.write(`${RemoteControls.DRAW_CIRCLE} ${firstMessageParam}`);
 
       const circlePoints = DrawFigureService.getCirclePoints(x, y, firstMessageParam);
 
@@ -71,7 +71,7 @@ export default async function controlsSwitcher(
 
       break;
     case RemoteControls.DRAW_RECTANGLE:
-      wsClient.send(
+      duplexStream.write(
         `${RemoteControls.DRAW_RECTANGLE} ${firstMessageParam} ${secondMessageParam}`
       );
       await mouse.pressButton(Button.LEFT)
@@ -89,7 +89,7 @@ export default async function controlsSwitcher(
 
       break;
     case RemoteControls.DRAW_SQUARE:
-      wsClient.send(`${RemoteControls.DRAW_SQUARE} ${firstMessageParam}`);
+      duplexStream.write(`${RemoteControls.DRAW_SQUARE} ${firstMessageParam}`);
 
       await mouse.pressButton(Button.LEFT)
 
@@ -117,7 +117,7 @@ export default async function controlsSwitcher(
       const capturedScreen = await imageToBase64(path.resolve(DEFAULT_IMAGE_PATH, DEFAULT_IMAGE_NAME + FileType.PNG));
       const croppedBase64ImageText = capturedScreen?.split(",")[1];
 
-      wsClient.send(`${RemoteControls.PRINT_SCREEN} ${croppedBase64ImageText}`);
+      duplexStream.write(`${RemoteControls.PRINT_SCREEN} ${croppedBase64ImageText}`);
 
       break;
     default:
