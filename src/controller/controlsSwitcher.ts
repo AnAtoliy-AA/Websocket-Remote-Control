@@ -1,16 +1,16 @@
-import { Button, down, left, mouse, right, up } from "@nut-tree/nut-js";
+import { Button, down, left, mouse, right, up, screen, Region, FileType } from "@nut-tree/nut-js";
 import {
   IMAGE_WIDTH,
   IMAGE_HEIGHT,
-  DEFAULT_MOUSE_DELAY,
-  SMALL_MOUSE_DELAY,
   MouseSpeed,
+  DEFAULT_IMAGE_NAME,
+  DEFAULT_IMAGE_PATH,
 } from "../constants/common";
 import { RemoteControls } from "../constants/remoteControls";
-import screenCaptureToFile from "../utils/screenCaptureToFile";
 import { ICustomWebSocket } from "../types/customWebSocket";
 import DrawFigureService from '../services/DrawFigureService';
-import { calculateMovementTimesteps } from '@nut-tree/nut-js/dist/lib/mouse-movement.function';
+import { imageToBase64 } from '../utils/base64image';
+import path from 'path';
 
 export default async function controlsSwitcher(
   message: Buffer,
@@ -105,20 +105,21 @@ export default async function controlsSwitcher(
       await mouse.releaseButton(Button.LEFT)
 
       break;
-    // case RemoteControls.PRINT_SCREEN:
-    // const img = robot.screen.capture(
-    //   x - IMAGE_WIDTH / 2,
-    //   y - IMAGE_HEIGHT / 2,
-    //   IMAGE_WIDTH,
-    //   IMAGE_HEIGHT
-    // );
+    case RemoteControls.PRINT_SCREEN:
+      const _left = x - IMAGE_WIDTH / 2;
+      const _top = y - IMAGE_HEIGHT / 2;
+      const _width = IMAGE_WIDTH;
+      const _height = IMAGE_HEIGHT;
+      const region = new Region(_left, _top, _width, _height);
 
-    // const capturedScreen: string = await screenCaptureToFile(img);
-    // const croppedBase64ImageText = capturedScreen.split(",")[1];
+      await screen.captureRegion(DEFAULT_IMAGE_NAME, region, FileType.PNG, DEFAULT_IMAGE_PATH);
 
-    // wsClient.send(`${RemoteControls.PRINT_SCREEN} ${croppedBase64ImageText}`);
+      const capturedScreen = await imageToBase64(path.resolve(DEFAULT_IMAGE_PATH, DEFAULT_IMAGE_NAME + FileType.PNG));
+      const croppedBase64ImageText = capturedScreen?.split(",")[1];
 
-    // break;
+      wsClient.send(`${RemoteControls.PRINT_SCREEN} ${croppedBase64ImageText}`);
+
+      break;
     default:
       console.log(RemoteControls.UNKNOWN_COMMAND);
 

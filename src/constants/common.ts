@@ -14,4 +14,7 @@ export enum MouseSpeed {
     DEFAULT = 100,
     FAST = 120,
     MAX = 150,
-}
+};
+
+export const DEFAULT_IMAGE_NAME = 'image';
+export const DEFAULT_IMAGE_PATH = './src/data';
